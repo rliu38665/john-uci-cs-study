@@ -613,6 +613,13 @@ function openWeek(n){
       <a class="reslink" href="${ytQuery(n)}" target="_blank" rel="noopener">▶️ YouTube videos for: ${wk.title}</a>`;
   rl.forEach(r=>{ html+=`<a class="reslink" href="${r[1]}" target="_blank" rel="noopener">${r[0]}</a>`; });
   html+=`</div></div>`;
+  // 📚 Past Exams & Real UCI Question Banks
+  const ex=EXAMS[id]||[];
+  html+=`<div class="sec"><h3>📚 Past Exams &amp; Real UCI Question Banks</h3>
+    <p class="askhint">Actual past exams and practice question banks from UCI professors and the Math Department. Do these timed and closed-book before the real test — it's the best way to know you're truly ready.</p>
+    <div class="reslinks">`;
+  ex.forEach(r=>{ html+=`<a class="reslink" href="${r[1]}" target="_blank" rel="noopener">${r[0]}</a>`; });
+  html+=`</div></div>`;
   html+=`</div>`;
   panel.innerHTML=html; panel.classList.add('open'); panel.scrollIntoView({behavior:'smooth',block:'start'});
 }
@@ -621,6 +628,12 @@ const RES={
  ics32:[["🐍 Python.org — modules, files & exceptions","https://docs.python.org/3/tutorial/"],["🎮 Real Python — tkinter & PyGame projects","https://www.youtube.com/results?search_query=python+tkinter+pygame+tutorial+beginner"],["▶️ Tech With Tim — Python projects","https://www.youtube.com/results?search_query=tech+with+tim+python+tutorial"]],
  ics33:[["🐍 Python.org — data model & advanced features","https://docs.python.org/3/reference/datamodel.html"],["⚡ mCoding — intermediate/advanced Python","https://www.youtube.com/results?search_query=mcoding+python+decorators+generators"],["▶️ ArjanCodes — Pythonic design & decorators","https://www.youtube.com/results?search_query=arjancodes+decorators+dataclasses+python"]],
  math2a:[["📘 Khan Academy — Calculus 1 (free full course)","https://www.khanacademy.org/math/calculus-1"],["👨‍🏫 Professor Leonard — Calculus 1 lectures","https://www.youtube.com/results?search_query=professor+leonard+calculus+1"],["🎨 3Blue1Brown — Essence of Calculus","https://www.youtube.com/results?search_query=3blue1brown+essence+of+calculus"]]
+};
+const EXAMS={
+ ics31:[["📄 Prof. David Kay — past ICS 31 midterms WITH answers","https://ics.uci.edu/~kay/courses/31/quiz/"],["📝 Real past ICS 31 Midterm 2 (PDF)","https://ics.uci.edu/~kay/courses/31/quiz/f16.mt2.pdf"],["📘 Prof. Pattis — ICS 31 course, quizzes & practice","https://ics.uci.edu/~pattis/ICS-31/index.html"]],
+ ics32:[["📘 Prof. Thornton — ICS 32 course reference & materials","https://ics.uci.edu/~thornton/ics32/CourseReference.html"],["🗂 Prof. Thornton — ICS 32 full course (schedule, projects, notes)","https://ics.uci.edu/~thornton/ics32/"]],
+ ics33:[["📘 Prof. Pattis — ICS 33 course (quizzes & exams)","https://ics.uci.edu/~pattis/ICS-33/index.html"],["✅ Real ICS 33 quiz WITH full solutions (PDF)","https://ics.uci.edu/~pattis/ICS-33/solutions/ICS33q1spr22.pdf"]],
+ math2a:[["📄 UCI Math Dept — Math 2A Final Exam Review (official PDF)","https://www.math.uci.edu/sites/default/files/2A-Final-Review.pdf"],["🗂 UCI Math — official 2A/2B resources & sample exams","https://www.math.uci.edu/undergraduate/courses/calculus-2a2b-resources"],["🎥 UCI OpenCourseWare — Math 2A lectures + Final Exam Review","https://ocw.uci.edu/courses/math_2a_calculus_i.html"]]
 };
 function askAI(which,n){
   const wk=ACT().weeks.find(x=>x.n===n);
