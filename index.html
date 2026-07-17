@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="John Study">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0064a4">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<title>John's UCI CS Study Hub — ICS 31 / 32 / 33 / MATH 2A</title>
+<style>
+  :root{
+    --uci-blue:#0064a4; --uci-gold:#ffd200; --ink:#1c2b39; --muted:#6b7a89;
+    --bg:#f4f7fb; --card:#ffffff; --line:#e3e9f0; --good:#1e9e5a; --warn:#e8890c; --bad:#d64545;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  header{background:linear-gradient(120deg,var(--uci-blue),#00487a);color:#fff;padding:18px 22px}
+  header h1{margin:0;font-size:20px}
+  header p{margin:4px 0 0;opacity:.85;font-size:13px}
+  .wrap{max-width:1000px;margin:0 auto;padding:16px}
+  .tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+  .tab{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 14px;cursor:pointer;font-size:13px;flex:1;min-width:150px}
+  .tab .c{font-weight:700;font-size:14px}
+  .tab .s{color:var(--muted);font-size:12px}
+  .tab.active{background:var(--uci-blue);color:#fff;border-color:var(--uci-blue)}
+  .tab.active .s{color:#dbeaf7}
+  .bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .countdown{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;font-size:13px;display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+  .countdown b{color:var(--uci-blue);font-size:15px}
+  .countdown .exam{color:var(--bad);font-weight:600}
+  .setdate{font-size:12px;color:var(--muted)}
+  .setdate input{border:1px solid var(--line);border-radius:6px;padding:3px 6px;font-size:12px}
+  .progress-overall{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:16px}
+  .pbar{height:12px;background:#e9eef4;border-radius:8px;overflow:hidden;margin-top:8px}
+  .pbar>span{display:block;height:100%;background:linear-gradient(90deg,var(--good),#37c47f);width:0%}
+  .weeks{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-bottom:20px}
+  .wk{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;cursor:pointer;transition:.15s;position:relative}
+  .wk:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,80,160,.12)}
+  .wk .n{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.5px}
+  .wk .t{font-size:14px;font-weight:600;margin:4px 0 8px;line-height:1.3}
+  .wk .mini{height:6px;background:#e9eef4;border-radius:4px;overflow:hidden}
+  .wk .mini>span{display:block;height:100%;background:var(--good);width:0}
+  .tag{position:absolute;top:10px;right:10px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px}
+  .tag.mid{background:#fff2e0;color:var(--warn)}
+  .tag.fin{background:#ffe3e3;color:var(--bad)}
+  .tag.lab{background:#e5f0ff;color:var(--uci-blue)}
+  .tag.rev{background:#eef1f4;color:var(--muted)}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:0;margin-bottom:20px;overflow:hidden;display:none}
+  .panel.open{display:block}
+  .phead{background:var(--uci-blue);color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center}
+  .phead h2{margin:0;font-size:17px}
+  .phead .close{cursor:pointer;background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:8px;padding:6px 10px;font-size:13px}
+  .pbody{padding:18px}
+  .sec{margin-bottom:18px}
+  .sec h3{font-size:14px;color:var(--uci-blue);margin:0 0 8px;text-transform:uppercase;letter-spacing:.5px}
+  .kp{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;margin-bottom:6px}
+  .kp .name{flex:1;font-size:14px}
+  .kp select{border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:13px;background:#fff}
+  .kp.mastered{background:#eefbf3;border-color:#bfe8cf}
+  .kp.learning{background:#fff8ec;border-color:#f2ddb4}
+  .q{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px}
+  .q .stem{font-size:14px;font-weight:600;margin-bottom:8px}
+  .q .opt{display:block;padding:8px 10px;border:1px solid var(--line);border-radius:8px;margin-bottom:6px;cursor:pointer;font-size:13.5px}
+  .q .opt:hover{background:#f4f8fd}
+  .q .opt.correct{background:#eefbf3;border-color:var(--good)}
+  .q .opt.wrong{background:#fdecec;border-color:var(--bad)}
+  .q .exp{font-size:12.5px;color:var(--muted);margin-top:6px;display:none}
+  .q .exp.show{display:block}
+  .proj{background:#f4f8fd;border:1px dashed var(--uci-blue);border-radius:10px;padding:12px;font-size:13.5px}
+  .proj b{color:var(--uci-blue)}
+  .mistakes{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:30px}
+  .mistakes h2{font-size:16px;margin:0 0 12px;color:var(--uci-blue)}
+  .mrow{border-left:3px solid var(--bad);background:#fdf6f6;padding:8px 12px;border-radius:0 8px 8px 0;margin-bottom:8px;font-size:13px}
+  .mrow .wkt{font-size:11px;color:var(--muted);font-weight:600}
+  .empty{color:var(--muted);font-size:13px}
+  .btn{background:var(--uci-blue);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer}
+  .btn.ghost{background:#fff;color:var(--uci-blue);border:1px solid var(--uci-blue)}
+  footer{text-align:center;color:var(--muted);font-size:12px;padding:18px}
+  a{color:var(--uci-blue)}
+</style>
+</head>
+<body>
+<header>
+  <h1>🐜 John's UCI CS Study Hub</h1>
+  <p>UC Irvine · Computer Science · Fall = ICS 31 + MATH 2A · CS sequence ICS 31 → 32 → 33 · 10-week quarter tracker</p>
+</header>
+
+<div class="wrap">
+  <div class="tabs" id="tabs"></div>
+
+  <div class="bar">
+    <div class="countdown" id="countdown"></div>
+    <div class="setdate">Quarter start (Week 1 Monday):
+      <input type="date" id="startDate">
+    </div>
+  </div>
+
+  <div class="progress-overall">
+    <div style="display:flex;justify-content:space-between;font-size:13px">
+      <span><b id="pctText">0%</b> mastered in this course</span>
+      <button class="btn ghost" onclick="resetCourse()">Reset this course</button>
+    </div>
+    <div class="pbar"><span id="overallBar"></span></div>
+  </div>
+
+  <div class="weeks" id="weeks"></div>
+  <div class="panel" id="panel"></div>
+
+  <div class="mistakes">
+    <h2>📕 错题本 Mistake Notebook <span id="mCourse" style="font-size:12px;color:var(--muted)"></span></h2>
+    <div id="mistakeList"></div>
+  </div>
+</div>
+
+<footer>
+  Built for John by Meimei · Content mapped to UCI official weekly schedules ·
+  <a href="https://ics.uci.edu/~pattis/ICS-31/weeklyschedule.html" target="_blank">ICS31</a> ·
+  <a href="https://ics.uci.edu/~thornton/ics32/Schedule.html" target="_blank">ICS32</a> ·
+  <a href="https://ics.uci.edu/~thornton/ics33/Schedule.html" target="_blank">ICS33</a> ·
+  <a href="https://ocw.uci.edu/courses/math_2a_calculus_i.html" target="_blank">MATH2A</a>
+</footer>
+
+<script>
+// ================= COURSE CONTENT =================
+const COURSES = {
+ ics31:{ code:"ICS 31", name:"Introduction to Programming", term:"Fall", start:"2026-09-28",
+  exams:{6:"MIDTERM",10:"LAB EXAM",11:"FINAL EXAM"},
+  weeks:[
+   {n:1,title:"Syntax, Tokens & Lexical Structure",
+    topics:["Program basics / IDLE & Python 3","EBNF syntax notation","Tokens: keywords, identifiers, literals","Data types: int, float, str, bool"],
+    quiz:[{stem:"Which is a valid Python identifier?",opts:["2score","total_score","class","my-score"],a:1,exp:"Can't start with a digit, can't be a keyword, no '-'."},
+          {stem:"What type is 3.0 ?",opts:["int","str","float","bool"],a:2,exp:"Decimal point → float."}],
+    project:"写 hello 程序：用 3 个 print 打印名字、专业、一句自我介绍。"},
+   {n:2,title:"Modules, Function Headers & Operators",
+    topics:["import modules (math, random)","Reading a function header","Operators + - * / // % **","Operator precedence"],
+    quiz:[{stem:"17 // 5 = ?",opts:["3.4","3","2","4"],a:1,exp:"// 是整除，17//5=3。"},
+          {stem:"2 ** 3 = ?",opts:["6","8","9","5"],a:1,exp:"** 是幂，2^3=8。"}],
+    project:"用 math 算圆面积：输入半径，输出 math.pi*r**2。"},
+   {n:3,title:"Expressions, if & for loops",
+    topics:["Boolean & comparison operators","if / elif / else","for loops over range() & strings","Accumulator pattern"],
+    quiz:[{stem:"for i in range(1,5): 循环几次?",opts:["5","4","3","6"],a:1,exp:"range(1,5)=1,2,3,4 → 4 次。"},
+          {stem:"哪个关键字处理'否则'?",opts:["elif","else","otherwise","default"],a:1,exp:"else 在所有条件为假时执行。"}],
+    project:"FizzBuzz：打印 1-30，3 的倍数印 Fizz，5 的倍数印 Buzz。"},
+   {n:4,title:"while loops, try/except & Debugging",
+    topics:["while loops & conditions","break / continue","Exceptions: try / except","Reading tracebacks / debugging"],
+    quiz:[{stem:"次数未知时用哪种循环最好?",opts:["for","while","range","map"],a:1,exp:"while 按条件跑，适合未知次数。"},
+          {stem:"try/except 防的是?",opts:["慢代码","运行时异常","语法错误","注释"],a:1,exp:"捕获运行时异常，避免崩溃。"}],
+    project:"输入验证：反复要求输入，直到得到有效整数（try/except）。"},
+   {n:5,title:"Functions & Modules, Testing, lambda",
+    topics:["def: parameters & return","Local vs global scope","Testing functions (assert)","lambda expressions"],
+    quiz:[{stem:"没有 return 的函数返回?",opts:["0","''","None","Error"],a:2,exp:"默认返回 None。"},
+          {stem:"哪个 lambda 把 x 翻倍?",opts:["lambda x: x*2","def x*2","lambda: x*2 x","x => x*2"],a:0,exp:"lambda x: x*2。"}],
+    project:"写 is_prime(n) 并用 assert 测试几个例子。"},
+   {n:6,title:"Lists & Comprehensions · MIDTERM",
+    topics:["List indexing & slicing","Methods: append, pop, sort","Iterating lists","List comprehensions"],
+    quiz:[{stem:"[10,20,30][-1] = ?",opts:["10","20","30","Error"],a:2,exp:"-1 是最后一个 → 30。"},
+          {stem:"[x*x for x in range(4)] = ?",opts:["[0,1,4,9]","[1,4,9,16]","[0,1,2,3]","[1,2,3,4]"],a:0,exp:"0,1,2,3 的平方。"}],
+    project:"期中复习：一串数字算 总和/平均/最大/偶数列表（用推导式）。"},
+   {n:7,title:"Tuples, Named Tuples & Dictionaries",
+    topics:["Tuples & immutability","namedtuple","Dict: key/value, get, in","Iterating dict items"],
+    quiz:[{stem:"tuple 和 list 的主要区别?",opts:["tuple 不可变","tuple 不能放数字","list 永远更快","没区别"],a:0,exp:"tuple 创建后不可改。"},
+          {stem:"安全取 key 'age' 默认 0?",opts:["d['age']","d.get('age',0)","d.age","get(d,'age')"],a:1,exp:"缺失时返回 0 不崩溃。"}],
+    project:"字数统计：统计每个单词出现次数，打印最多的 3 个。"},
+   {n:8,title:"Dict Review, Sets & Intro to Classes",
+    topics:["Nested dictionaries","Sets & frozensets, set ops","Using existing objects","Attributes & methods"],
+    quiz:[{stem:"{1,2,2,3} 变成 set 是?",opts:["{1,2,2,3}","{1,2,3}","[1,2,3]","Error"],a:1,exp:"set 去重。"},
+          {stem:"a 与 b 的共同元素用?",opts:["a | b","a & b","a - b","a ^ b"],a:1,exp:"& 是交集。"}],
+    project:"用 set 找两个列表的交集和各自独有元素。"},
+   {n:9,title:"Writing Classes & OOP Design",
+    topics:["class & __init__","self & instance attributes","Methods","__str__ & OOP design"],
+    quiz:[{stem:"__init__ 的作用?",opts:["打印对象","初始化新对象属性","删除对象","导入模块"],a:1,exp:"构造函数，设置初始状态。"},
+          {stem:"方法里的 self 指?",opts:["类名","当前对象/实例","全局变量","模块"],a:1,exp:"self 是被调用的那个实例。"}],
+    project:"写 BankAccount 类：balance + deposit/withdraw + __str__。"},
+   {n:10,title:"Functions as Data (map/filter/reduce) · LAB EXAM",
+    topics:["Functions as args & returns","map / filter","functools.reduce","Final review"],
+    quiz:[{stem:"list(map(lambda x:x+1,[1,2,3])) = ?",opts:["[1,2,3]","[2,3,4]","[1,2,3,4]","[0,1,2]"],a:1,exp:"每个 +1。"},
+          {stem:"filter 做什么?",opts:["转换每项","保留条件为真的项","排序","求和"],a:1,exp:"保留返回 True 的元素。"}],
+    project:"综合：一组成绩 用 filter 选及格、map 转等级、sum 算平均。"},
+   {n:11,title:"FINAL EXAM WEEK",
+    topics:["综合复习：语法→循环→函数→列表/字典→类→map/filter","重做往年题","考试时间管理"],
+    quiz:[{stem:"最佳期末复习法?",opts:["只重读笔记","重做题+重刷错题","考前熬夜突击","跳过弱项"],a:1,exp:"主动练习+刷错题本最有效。"}],
+    project:"把错题本全部重做一遍，直到全对。"}
+  ]},
+
+ ics32:{ code:"ICS 32", name:"Programming with Software Libraries", term:"Winter", start:"2027-01-04",
+  exams:{10:"REVIEW",11:"FINAL EXAM"},
+  weeks:[
+   {n:1,title:"Libraries, Abstraction, Files & Exceptions",
+    topics:["Software libraries & abstraction","File systems & paths","Reading/writing files","try/except handling"],
+    quiz:[{stem:"open(f) 用完后应该?",opts:["无所谓","close() 或用 with","删除文件","import 它"],a:1,exp:"用 with 自动关闭，避免资源泄漏。"},
+          {stem:"抽象(abstraction)的好处?",opts:["代码更长","隐藏细节、方便复用","变慢","必须联网"],a:1,exp:"隐藏实现细节，只暴露接口。"}],
+    project:"读一个文本文件，统计行数、词数、字符数（用 with 打开）。"},
+   {n:2,title:"Testing, Recursion, Modules & import",
+    topics:["Testing & categories of test cases","Recursive data & functions","Multi-file programs","modules & import"],
+    quiz:[{stem:"递归函数必须有?",opts:["循环","基准情形(base case)","全局变量","文件"],a:1,exp:"没有 base case 会无限递归。"},
+          {stem:"好的测试用例应覆盖?",opts:["只正常输入","正常+边界+异常","只边界","不用测试"],a:1,exp:"正常、边界、错误输入都要测。"}],
+    project:"写递归 factorial(n) 和 sum_list(lst)，各写 3 个测试用例。"},
+   {n:3,title:"Networks, Sockets, Clients & Protocols",
+    topics:["Computer networks overview","Sockets","Servers & clients","Custom text protocols"],
+    quiz:[{stem:"socket 用来?",opts:["画图","程序间网络通信","存文件","算数学"],a:1,exp:"套接字做网络收发。"},
+          {stem:"客户端-服务器里服务器负责?",opts:["发起请求","监听并响应请求","只显示界面","无作用"],a:1,exp:"服务器监听、响应；客户端发起。"}],
+    project:"用 socket 写一个 echo 客户端：连服务器，发一句，打印回复。"},
+   {n:4,title:"Classes, Objects, Duck Typing & Interfaces",
+    topics:["Classes, attributes, constructors","Methods","Duck typing","Designing consistent classes"],
+    quiz:[{stem:"Duck typing 的意思?",opts:["必须继承","看能做什么而非是什么类型","只用 int","禁止方法"],a:1,exp:"'像鸭子叫就当鸭子'——看行为不看类型。"},
+          {stem:"constructor 在 Python 里是?",opts:["__str__","__init__","__main__","__len__"],a:1,exp:"__init__ 是构造器。"}],
+    project:"设计 Shape 接口 + Circle/Rectangle 两个类，都实现 area()。"},
+   {n:5,title:"Web: URLs, HTTP, Web APIs & JSON",
+    topics:["URLs & HTTP requests","Web APIs","JSON parsing","Accessing web services (stdlib)"],
+    quiz:[{stem:"JSON 解析成 Python 后常是?",opts:["字符串","字典/列表","整数","文件"],a:1,exp:"JSON 对象→dict，数组→list。"},
+          {stem:"HTTP GET 一般用来?",opts:["删除数据","获取数据","关机","编译"],a:1,exp:"GET 取数据。"}],
+    project:"调一个公开 JSON API（如天气），解析并打印其中 3 个字段。"},
+   {n:6,title:"References, TDD, Refactoring & unittest",
+    topics:["Object references","Multidimensional data","Test-driven development","unittest module"],
+    quiz:[{stem:"TDD 的顺序?",opts:["先写代码后写测试","先写测试再写代码","不写测试","只写文档"],a:1,exp:"测试先行，红-绿-重构。"},
+          {stem:"两个变量指向同一 list，改一个会?",opts:["互不影响","都变（同一对象）","报错","复制一份"],a:1,exp:"引用同一对象，一起变。"}],
+    project:"用 unittest 给 is_prime 写测试类，跑通全部用例。"},
+   {n:7,title:"Third-party Libs, venv & PyGame Basics",
+    topics:["Third-party libraries & pip","Virtual environments","PyGame: game loop, display","Events & model/view"],
+    quiz:[{stem:"虚拟环境(venv)解决?",opts:["网速","项目依赖隔离","显示器","字体"],a:1,exp:"每个项目独立依赖，不冲突。"},
+          {stem:"游戏循环(game loop)每帧做?",opts:["只画一次","处理输入→更新→重画","关闭程序","读文件"],a:1,exp:"输入-更新-渲染 循环。"}],
+    project:"PyGame：开一个窗口，画一个能用方向键移动的方块。"},
+   {n:8,title:"Game Enhancements, Sound & tkinter GUIs",
+    topics:["Keyboard input handling","Sound & mixers","tkinter widgets","Event-based programming"],
+    quiz:[{stem:"GUI 程序主要靠什么驱动?",opts:["for 循环","事件(events)","文件","递归"],a:1,exp:"事件驱动：点击/按键触发回调。"},
+          {stem:"tkinter 里 Button 属于?",opts:["widget 控件","文件","协议","异常"],a:0,exp:"按钮是一种 widget。"}],
+    project:"tkinter：做一个有输入框+按钮的窗口，点按钮把输入显示在标签上。"},
+   {n:9,title:"Bound Methods, grid Layout & Model/View",
+    topics:["Bound methods","grid layout manager","Model/view separation","TDD on real projects"],
+    quiz:[{stem:"Model/View 分离的好处?",opts:["更好看","逻辑与界面解耦、好测试","更快","省内存"],a:1,exp:"数据逻辑独立于界面，便于测试维护。"},
+          {stem:"grid() 用来?",opts:["联网","按行列摆控件","读文件","加密"],a:1,exp:"网格布局管理器。"}],
+    project:"用 grid 做一个简单计算器界面（数字按钮 + 显示框）。"},
+   {n:10,title:"Review Week",
+    topics:["整学期综合复习","项目收尾","无新课"],
+    quiz:[{stem:"复习周最该做?",opts:["开新项目","巩固+补测试+刷错题","不学","只睡觉"],a:1,exp:"巩固已学、补齐测试、过错题本。"}],
+    project:"把本学期一个项目补上完整 unittest 测试。"},
+   {n:11,title:"FINAL EXAM WEEK",
+    topics:["综合复习：文件/异常→网络→类/接口→Web/JSON→GUI","过一遍所有 Notes","上机练手"],
+    quiz:[{stem:"上机考前最好?",opts:["只看不写","亲手把常见套路敲一遍","背代码","跳过"],a:1,exp:"手感靠亲手敲。"}],
+    project:"限时重写一个前面的项目，检验熟练度。"}
+  ]},
+
+ ics33:{ code:"ICS 33", name:"Intermediate Programming", term:"Spring", start:"2027-03-29",
+  exams:{11:"FINAL EXAM"},
+  weeks:[
+   {n:1,title:"Python Review: Dicts, Scopes, Classes, Params",
+    topics:["Dicts & namespaces","Scopes & module import","Classes, objects, methods","Function parameter conventions"],
+    quiz:[{stem:"*args 表示?",opts:["一个参数","任意多位置参数","关键字参数","返回值"],a:1,exp:"*args 收集任意多位置参数成 tuple。"},
+          {stem:"局部变量作用域在?",opts:["整个程序","定义它的函数内","所有文件","类外"],a:1,exp:"局部作用域限于函数内部。"}],
+    project:"写函数用 *args 和 **kwargs 打印所有传入的参数。"},
+   {n:2,title:"Context Managers & Complexity Analysis",
+    topics:["Context managers & with","Asymptotic analysis","Big-O notation","Measuring time/memory"],
+    quiz:[{stem:"遍历一个长度 n 的列表是?",opts:["O(1)","O(n)","O(n^2)","O(log n)"],a:1,exp:"线性扫一遍 → O(n)。"},
+          {stem:"with 语句保证?",opts:["更快","进出时自动管理资源","联网","加密"],a:1,exp:"退出时自动清理(如关闭文件)。"}],
+    project:"自己写一个上下文管理器(用 __enter__/__exit__)计时一段代码。"},
+   {n:3,title:"Search Algorithms & Relational Databases",
+    topics:["Sequential vs binary search","Case analysis","Relational DB: tables, keys","Relationships"],
+    quiz:[{stem:"二分查找要求数据?",opts:["随机","已排序","很大","是字符串"],a:1,exp:"二分法要求有序。"},
+          {stem:"n 个元素二分查找最坏?",opts:["O(n)","O(log n)","O(1)","O(n^2)"],a:1,exp:"每次砍一半 → O(log n)。"}],
+    project:"实现 binary_search(sorted_list, target)，返回下标或 -1。"},
+   {n:4,title:"SQL & Mechanics of Iteration",
+    topics:["Creating tables in SQL","Data manipulation (INSERT/SELECT)","Mechanics of iteration","Comprehensions"],
+    quiz:[{stem:"SQL 取数据用?",opts:["GET","SELECT","PRINT","READ"],a:1,exp:"SELECT 查询。"},
+          {stem:"{k:v for ...} 是?",opts:["集合推导","字典推导","列表","元组"],a:1,exp:"字典推导式。"}],
+    project:"用 sqlite3 建一张 students 表，插入 3 行，SELECT 出来打印。"},
+   {n:5,title:"Iterables, Iterators & Generators",
+    topics:["Iterable protocol","Custom iterator classes","Generators & yield","Lazy evaluation / itertools"],
+    quiz:[{stem:"生成器(generator)用哪个关键字?",opts:["return","yield","break","def only"],a:1,exp:"yield 逐个产出值。"},
+          {stem:"惰性求值(lazy)的好处?",opts:["占更多内存","按需产出省内存","更慢","必须排序"],a:1,exp:"用到才算，处理大/无限序列。"}],
+    project:"写一个生成斐波那契数列的 generator，取前 10 个。"},
+   {n:6,title:"The Python Data Model",
+    topics:["__len__, indexing, slicing","Hashing","Operator overloading","Attribute resolution"],
+    quiz:[{stem:"重载 + 号要定义?",opts:["__plus__","__add__","__sum__","__concat__"],a:1,exp:"__add__ 实现 + 运算。"},
+          {stem:"len(obj) 会调用?",opts:["__size__","__len__","__count__","__num__"],a:1,exp:"__len__。"}],
+    project:"写一个 Vector 类，重载 + 和 __str__，能 v1+v2 相加。"},
+   {n:7,title:"Inheritance, MRO & Recursion",
+    topics:["Single & multiple inheritance","Method resolution order (MRO)","Recursion depth & tail recursion","Multiple recursion"],
+    quiz:[{stem:"子类调用父类方法用?",opts:["parent()","super()","base()","this()"],a:1,exp:"super() 访问父类。"},
+          {stem:"MRO 决定?",opts:["文件顺序","多继承下方法查找顺序","内存","网速"],a:1,exp:"方法解析顺序。"}],
+    project:"设计 Animal→Dog/Cat 继承，各重写 speak()，演示多态。"},
+   {n:8,title:"Memoization, DP, Lambda & Decorators",
+    topics:["Memoization & dynamic programming","Lambda & higher-order functions","Decorators intro","Function transformation"],
+    quiz:[{stem:"memoization 做什么?",opts:["加密","缓存已算结果避免重算","联网","排序"],a:1,exp:"缓存子问题结果，加速(如 fib)。"},
+          {stem:"装饰器本质是?",opts:["一个类","接收函数返回新函数的函数","变量","文件"],a:1,exp:"高阶函数：包装原函数。"}],
+    project:"写一个 @timer 装饰器，打印被装饰函数的运行耗时。"},
+   {n:9,title:"Advanced Decorators",
+    topics:["Decorators with arguments","Class-based decorators","Stdlib decorators (functools)","@property, @lru_cache"],
+    quiz:[{stem:"@lru_cache 的作用?",opts:["加密","自动缓存函数结果","画图","联网"],a:1,exp:"functools 提供的记忆化缓存。"},
+          {stem:"带参数的装饰器需要?",opts:["两层嵌套函数","三个类","一个文件","无法实现"],a:0,exp:"多一层用于接收参数。"}],
+    project:"写一个 @repeat(n) 装饰器，让函数执行 n 次。"},
+   {n:10,title:"Pythonic Class Design",
+    topics:["namedtuple","Attribute customization & properties","dataclasses","Design comparisons"],
+    quiz:[{stem:"@dataclass 帮你自动生成?",opts:["网络","__init__/__repr__ 等","文件","线程"],a:1,exp:"自动生成样板方法。"},
+          {stem:"@property 让方法?",opts:["变慢","像属性一样访问","消失","变全局"],a:1,exp:"用 obj.x 访问而非 obj.x()。"}],
+    project:"用 @dataclass 定义 Point(x,y)，再加一个 @property distance_from_origin。"},
+   {n:11,title:"FINAL EXAM WEEK",
+    topics:["综合复习：复杂度→迭代器/生成器→数据模型→继承→装饰器→dataclass","过所有 Notes","上机练习"],
+    quiz:[{stem:"这门课的核心主题是?",opts:["只学语法","写地道高效的 Python + 复杂度意识","只做网页","只用 C"],a:1,exp:"Pythonic + 性能/复杂度思维。"}],
+    project:"综合项目：用生成器+装饰器+dataclass 组合完成一个小工具。"}
+  ]},
+
+ math2a:{ code:"MATH 2A", name:"Single-Variable Calculus I", term:"Fall", start:"2026-09-28",
+  exams:{4:"MIDTERM 1",8:"MIDTERM 2",11:"FINAL EXAM"},
+  weeks:[
+   {n:1,title:"Functions, Transformations & Inverses",
+    topics:["Functions & domain/range","Transformations (shift, stretch, reflect)","Slope & average rate of change","Inverse functions"],
+    quiz:[{stem:"f(x)=x² 向右平移 3 是?",opts:["(x+3)²","(x-3)²","x²+3","x²-3"],a:1,exp:"向右平移 h 是 (x-h)²。"},
+          {stem:"函数有反函数的条件?",opts:["连续","一一对应(通过水平线检验)","是多项式","过原点"],a:1,exp:"必须一对一(one-to-one)。"}],
+    project:"画 f(x)=√x 及其平移/翻转，标出定义域和值域。"},
+   {n:2,title:"Tangents, Limits & Continuity",
+    topics:["Tangent line & slope idea","Limit definition (intuitive)","Limit laws & calculating limits","Continuity"],
+    quiz:[{stem:"lim(x→2) (x²-4)/(x-2) = ?",opts:["0","2","4","不存在"],a:2,exp:"约分成 x+2，代入 2 → 4。"},
+          {stem:"函数在 a 点连续要求?",opts:["f(a) 存在即可","极限=f(a) 且都存在","可导","是直线"],a:1,exp:"极限存在、f(a)存在、二者相等。"}],
+    project:"用表格法逼近 lim(x→0) sin(x)/x，观察趋近 1。"},
+   {n:3,title:"IVT, Limits at Infinity & The Derivative",
+    topics:["Intermediate Value Theorem","Limits at infinity & asymptotes","Definition of derivative (limit)","Derivative as a function"],
+    quiz:[{stem:"导数 f'(a) 的定义是?",opts:["f(a)/a","lim h→0 [f(a+h)-f(a)]/h","f(a)·a","斜率×2"],a:1,exp:"差商的极限。"},
+          {stem:"lim(x→∞) 1/x = ?",opts:["∞","1","0","不存在"],a:2,exp:"x 越大 1/x 越小趋于 0。"}],
+    project:"用定义(极限)求 f(x)=x² 的导数，验证 = 2x。"},
+   {n:4,title:"Differentiation Rules · MIDTERM 1",
+    topics:["Power / constant / sum rules","Product rule","Quotient rule","Midterm review"],
+    quiz:[{stem:"d/dx (x⁵) = ?",opts:["5x⁴","x⁴","5x⁵","4x⁵"],a:0,exp:"幂法则 n·x^(n-1)。"},
+          {stem:"(uv)' = ?",opts:["u'v'","u'v+uv'","u'v-uv'","u'/v'"],a:1,exp:"乘积法则。"}],
+    project:"期中复习：求 (3x²+2x)(x-1) 的导数(用乘积法则+展开各算一遍对照)。"},
+   {n:5,title:"Trig Derivatives, Chain Rule & Implicit",
+    topics:["Derivatives of sin, cos, tan","Chain rule","Implicit differentiation","Higher-order derivatives"],
+    quiz:[{stem:"d/dx sin(x) = ?",opts:["cos(x)","-cos(x)","-sin(x)","tan(x)"],a:0,exp:"sin 的导数是 cos。"},
+          {stem:"d/dx (x²+1)³ 用?",opts:["幂法则","链式法则","乘积法则","商法则"],a:1,exp:"外层幂×内层导 → 3(x²+1)²·2x。"}],
+    project:"用隐函数求导，从 x²+y²=25 求 dy/dx。"},
+   {n:6,title:"Log/Exp Derivatives & Related Rates",
+    topics:["d/dx eˣ and ln(x)","Logarithmic differentiation","Exponential growth models","Related rates"],
+    quiz:[{stem:"d/dx eˣ = ?",opts:["x·eˣ⁻¹","eˣ","x·eˣ","1"],a:1,exp:"eˣ 的导数还是 eˣ。"},
+          {stem:"d/dx ln(x) = ?",opts:["1/x","ln(x)","x","eˣ"],a:0,exp:"ln 的导数是 1/x。"}],
+    project:"相关变化率：气球半径以 2cm/s 增长，求 r=5 时体积变化率。"},
+   {n:7,title:"Exponential Models & Linear Approximation",
+    topics:["Compound interest & growth/decay","Newton's Law of Cooling","Linear approximation & differentials","Tangent line approximation"],
+    quiz:[{stem:"连续复利公式?",opts:["A=P(1+r)ᵗ","A=Pe^(rt)","A=Prt","A=P/rt"],a:1,exp:"连续复利用 e^(rt)。"},
+          {stem:"线性近似用哪条线估函数值?",opts:["割线","切线","水平线","垂线"],a:1,exp:"用切线在附近近似曲线。"}],
+    project:"用线性近似估 √4.1（在 x=4 处切线）。"},
+   {n:8,title:"Max/Min & Mean Value Theorem · MIDTERM 2",
+    topics:["Critical points & extrema","First & second derivative tests","Mean Value Theorem","Midterm 2 review"],
+    quiz:[{stem:"求极值先找?",opts:["零点","临界点(f'=0或不存在)","渐近线","截距"],a:1,exp:"临界点是极值候选。"},
+          {stem:"f''(x)>0 说明曲线?",opts:["下凹","上凹(concave up)","是直线","递减"],a:1,exp:"二阶>0 → 上凹。"}],
+    project:"期中复习：求 f(x)=x³-3x 的极大极小值并判断凹凸。"},
+   {n:9,title:"L'Hospital's Rule & Curve Sketching",
+    topics:["Indeterminate forms 0/0, ∞/∞","L'Hospital's Rule","Curve sketching (full analysis)","Concavity & inflection points"],
+    quiz:[{stem:"L'Hospital 适用于?",opts:["任何极限","0/0 或 ∞/∞ 型","只有整数","加法"],a:1,exp:"不定型时对分子分母各求导。"},
+          {stem:"拐点(inflection)是?",opts:["最高点","凹凸性改变处","零点","端点"],a:1,exp:"f'' 变号的点。"}],
+    project:"完整分析并手绘 f(x)=x³-3x²：临界点、凹凸、拐点。"},
+   {n:10,title:"Optimization & Antiderivatives",
+    topics:["Optimization word problems","Setting up constraint + objective","Antiderivatives","Final review"],
+    quiz:[{stem:"最优化问题第一步?",opts:["直接求导","写出目标函数+约束","画图","猜答案"],a:1,exp:"先建目标函数与约束关系。"},
+          {stem:"x² 的一个原函数(antiderivative)是?",opts:["2x","x³/3 + C","x³","2x+C"],a:1,exp:"逆幂法则：x³/3 加常数 C。"}],
+    project:"最优化：给定周长 100 的矩形，求面积最大时的边长。"},
+   {n:11,title:"FINAL EXAM WEEK",
+    topics:["综合复习：极限→导数→求导法则→应用(极值/相关变化率/最优化)→原函数","重做两次期中卷","公式与题型整理"],
+    quiz:[{stem:"微积分一最核心的两大概念?",opts:["加减法","极限与导数","画图","背公式"],a:1,exp:"极限打基础，导数是主线。"}],
+    project:"把两张期中卷全部重做，错题进错题本刷到全对。"}
+  ]}
+};
+
+// ================= STATE =================
+const KEY="uci_cs_hub_v2";
+let state=JSON.parse(localStorage.getItem(KEY)||"{}");
+if(!state.mastery) state.mastery={};
+if(!state.mistakes) state.mistakes={};
+if(!state.starts) state.starts={};
+if(!state.active) state.active="ics31";
+for(const id in COURSES){ if(!state.starts[id]) state.starts[id]=COURSES[id].start; if(!state.mistakes[id]) state.mistakes[id]=[]; }
+function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
+let ACT=()=>COURSES[state.active];
+
+// ================= TABS =================
+const tabsEl=document.getElementById('tabs');
+function renderTabs(){
+  tabsEl.innerHTML='';
+  for(const id in COURSES){
+    const c=COURSES[id];
+    const d=document.createElement('div');
+    d.className='tab'+(state.active===id?' active':'');
+    d.innerHTML=`<div class="c">${c.code}</div><div class="s">${c.term} · ${c.name}</div>`;
+    d.onclick=()=>{ state.active=id; save(); closePanel(); renderAll(); };
+    tabsEl.appendChild(d);
+  }
+}
+
+// ================= WEEKS =================
+const weeksEl=document.getElementById('weeks');
+function tkey(id,w,i){ return `${id}-w${w}-${i}`; }
+function weekProgress(w){
+  const c=ACT(); const wk=c.weeks.find(x=>x.n===w);
+  let m=0; wk.topics.forEach((_,i)=>{ if(state.mastery[tkey(state.active,w,i)]==='mastered') m++; });
+  return wk.topics.length? Math.round(m/wk.topics.length*100):0;
+}
+function tagFor(w){
+  const e=ACT().exams[w];
+  if(!e) return '';
+  const cls = e.includes('MID')?'mid':e.includes('FINAL')?'fin':e.includes('LAB')?'lab':'rev';
+  return `<span class="tag ${cls}">${e}</span>`;
+}
+function renderWeeks(){
+  weeksEl.innerHTML='';
+  ACT().weeks.forEach(wk=>{
+    const div=document.createElement('div'); div.className='wk';
+    const p=weekProgress(wk.n);
+    div.innerHTML=`${tagFor(wk.n)}<div class="n">WEEK ${wk.n}</div><div class="t">${wk.title}</div>
+      <div class="mini"><span style="width:${p}%"></span></div>`;
+    div.onclick=()=>openWeek(wk.n);
+    weeksEl.appendChild(div);
+  });
+  renderOverall();
+}
+function renderOverall(){
+  const c=ACT(); let tot=0,m=0;
+  c.weeks.forEach(wk=>wk.topics.forEach((_,i)=>{tot++; if(state.mastery[tkey(state.active,wk.n,i)]==='mastered')m++;}));
+  const pct=tot?Math.round(m/tot*100):0;
+  document.getElementById('overallBar').style.width=pct+'%';
+  document.getElementById('pctText').textContent=pct+'%';
+}
+
+// ================= PANEL =================
+const panel=document.getElementById('panel');
+function openWeek(n){
+  const id=state.active; const wk=ACT().weeks.find(x=>x.n===n);
+  let html=`<div class="phead"><h2>${ACT().code} · Week ${wk.n} — ${wk.title}</h2>
+    <button class="close" onclick="closePanel()">✕ close</button></div><div class="pbody">`;
+  html+=`<div class="sec"><h3>📚 Topics & Mastery</h3>`;
+  wk.topics.forEach((t,i)=>{
+    const k=tkey(id,n,i); const st=state.mastery[k]||'not';
+    html+=`<div class="kp ${st==='mastered'?'mastered':st==='learning'?'learning':''}" id="kp-${k}">
+      <span class="name">${t}</span>
+      <select onchange="setMastery('${k}',this.value)">
+        <option value="not" ${st==='not'?'selected':''}>Not started</option>
+        <option value="learning" ${st==='learning'?'selected':''}>Learning</option>
+        <option value="mastered" ${st==='mastered'?'selected':''}>Mastered ✓</option>
+      </select></div>`;
+  });
+  html+=`</div><div class="sec"><h3>📝 Quick Quiz</h3>`;
+  wk.quiz.forEach((q,qi)=>{
+    html+=`<div class="q" id="q-${qi}"><div class="stem">${qi+1}. ${q.stem}</div>`;
+    q.opts.forEach((o,oi)=>{ html+=`<span class="opt" onclick="answer(${n},${qi},${oi})">${String.fromCharCode(65+oi)}. ${o}</span>`; });
+    html+=`<div class="exp" id="exp-${qi}">💡 ${q.exp}</div></div>`;
+  });
+  html+=`</div><div class="sec"><h3>🛠 Weekly Mini-Project</h3><div class="proj"><b>Practice:</b> ${wk.project}</div></div></div>`;
+  panel.innerHTML=html; panel.classList.add('open'); panel.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function closePanel(){ panel.classList.remove('open'); }
+function setMastery(k,v){ state.mastery[k]=v; save();
+  const el=document.getElementById('kp-'+k); if(el) el.className='kp '+(v==='mastered'?'mastered':v==='learning'?'learning':'');
+  renderWeeks();
+}
+function answer(n,qi,oi){
+  const wk=ACT().weeks.find(x=>x.n===n); const q=wk.quiz[qi];
+  const box=document.getElementById('q-'+qi); if(box.dataset.done) return; box.dataset.done="1";
+  box.querySelectorAll('.opt').forEach((el,i)=>{ el.style.cursor='default';
+    if(i===q.a) el.classList.add('correct'); if(i===oi&&oi!==q.a) el.classList.add('wrong'); });
+  document.getElementById('exp-'+qi).classList.add('show');
+  if(oi!==q.a){
+    state.mistakes[state.active].push({week:n,stem:q.stem,chosen:q.opts[oi],correct:q.opts[q.a],exp:q.exp});
+    save(); renderMistakes();
+  }
+}
+
+// ================= MISTAKES =================
+function renderMistakes(){
+  document.getElementById('mCourse').textContent='— '+ACT().code;
+  const arr=state.mistakes[state.active]||[];
+  const el=document.getElementById('mistakeList');
+  if(!arr.length){ el.innerHTML='<p class="empty">还没有错题。做随堂小测，答错的题会自动收进这里，考前重刷。</p>'; return; }
+  el.innerHTML=arr.map((m,idx)=>`<div class="mrow">
+    <span class="wkt">WEEK ${m.week}</span>
+    <button class="btn ghost" style="float:right;padding:2px 8px;font-size:11px" onclick="delMistake(${idx})">remove</button>
+    <div style="margin:4px 0"><b>${m.stem}</b></div>
+    <div>你选了：<span style="color:var(--bad)">${m.chosen}</span> · 正确：<span style="color:var(--good)">${m.correct}</span></div>
+    <div style="color:var(--muted);font-size:12px;margin-top:3px">💡 ${m.exp}</div></div>`).join('');
+}
+function delMistake(i){ state.mistakes[state.active].splice(i,1); save(); renderMistakes(); }
+
+// ================= COUNTDOWN =================
+const sd=document.getElementById('startDate');
+function renderCountdown(){
+  sd.value=state.starts[state.active];
+  const start=new Date(state.starts[state.active]+"T00:00:00"); const now=new Date(); const day=86400000;
+  const since=Math.floor((now-start)/day); const curWeek=Math.floor(since/7)+1;
+  let html='';
+  if(since<0) html=`📅 <span>${ACT().term} 开学还有 <b>${Math.abs(since)}</b> 天</span>`;
+  else if(curWeek>=1&&curWeek<=11) html=`📅 <span>现在是 <b>Week ${curWeek}</b></span>`;
+  else html=`📅 <span>${ACT().term} quarter 已结束</span>`;
+  const ews=Object.keys(ACT().exams).map(Number).filter(w=>w>=curWeek).sort((a,b)=>a-b);
+  if(ews.length){ const ew=ews[0]; const ed=new Date(start.getTime()+((ew-1)*7)*day);
+    const dl=Math.ceil((ed-now)/day);
+    html+=` <span class="exam">⏰ ${ACT().exams[ew]} 还有约 ${dl>0?dl:0} 天 (Week ${ew})</span>`; }
+  document.getElementById('countdown').innerHTML=html;
+}
+sd.onchange=()=>{ state.starts[state.active]=sd.value; save(); renderCountdown(); };
+
+function resetCourse(){
+  if(confirm('清空 '+ACT().code+' 的进度和错题本？')){
+    for(const k in state.mastery){ if(k.startsWith(state.active+'-')) delete state.mastery[k]; }
+    state.mistakes[state.active]=[]; save(); renderAll();
+  }
+}
+
+function renderAll(){ renderTabs(); renderWeeks(); renderMistakes(); renderCountdown(); }
+renderAll();
+setInterval(renderCountdown,3600000);
+
+// PWA: register service worker for offline + home-screen install (only over http/https)
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>
