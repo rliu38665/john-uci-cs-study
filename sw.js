@@ -1,5 +1,5 @@
-// John's UCI CS Study Hub — offline service worker
-const CACHE = 'john-study-v1';
+// John's UCI CS Study Hub — service worker (network-first for content)
+const CACHE = 'john-study-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -20,14 +20,30 @@ self.addEventListener('activate', e => {
   );
 });
 
-// Cache-first: fully usable offline once installed
+// Network-first for the page/HTML so John always gets the latest version when online;
+// falls back to the cached copy only when offline. Other assets: cache-first with refresh.
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
+  const isDoc = e.request.mode === 'navigate' ||
+    (e.request.destination === 'document') ||
+    e.request.url.endsWith('/') || e.request.url.endsWith('index.html');
+
+  if (isDoc) {
+    e.respondWith(
+      fetch(e.request).then(res => {
+        const copy = res.clone();
+        caches.open(CACHE).then(c => c.put(e.request, copy)).catch(() => {});
+        return res;
+      }).catch(() => caches.match(e.request).then(hit => hit || caches.match('./index.html')))
+    );
+    return;
+  }
+
   e.respondWith(
     caches.match(e.request).then(hit => hit || fetch(e.request).then(res => {
       const copy = res.clone();
       caches.open(CACHE).then(c => c.put(e.request, copy)).catch(() => {});
       return res;
-    }).catch(() => caches.match('./index.html')))
+    }))
   );
 });
