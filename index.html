@@ -93,6 +93,35 @@
   .empty{color:var(--muted);font-size:13px}
   .btn{background:var(--uci-blue);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer}
   .btn.ghost{background:#fff;color:var(--uci-blue);border:1px solid var(--uci-blue)}
+  .weakspots{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:20px}
+  .weakspots h2{font-size:16px;margin:0 0 6px;color:var(--uci-blue)}
+  .weakspots .sub{font-size:12.5px;color:var(--muted);margin:0 0 12px}
+  .wcard{border-left:3px solid var(--warn);background:#fff8ec;padding:10px 14px;border-radius:0 10px 10px 0;margin-bottom:10px}
+  .wcard .wh{font-size:14px;font-weight:700}
+  .wcard .wmeta{font-size:11.5px;color:var(--muted);margin:2px 0 6px}
+  .wcard .tip{font-size:13px;background:#fff;border:1px dashed var(--warn);border-radius:8px;padding:8px 10px;margin:6px 0;line-height:1.45}
+  .wcard .tip b{color:var(--warn)}
+  .wcard .wbtns{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+  .wcard .wbtns .btn{padding:6px 12px;font-size:12.5px}
+  .drill-ov{position:fixed;inset:0;background:rgba(12,30,50,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
+  .drill-ov.open{display:flex}
+  .drill{background:#fff;border-radius:14px;max-width:560px;width:100%;max-height:90vh;overflow:auto}
+  .drill .dh{background:var(--uci-blue);color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center}
+  .drill .dh h3{margin:0;font-size:16px}
+  .drill .dh .close{cursor:pointer;background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:8px;padding:6px 10px;font-size:13px}
+  .drill .db{padding:18px}
+  .drill .dprog{font-size:12px;color:var(--muted);margin-bottom:10px}
+  .drill .dprog .pbar{height:10px;background:#e9eef4;border-radius:6px;overflow:hidden;margin-top:6px}
+  .drill .dprog .pbar>span{display:block;height:100%;background:linear-gradient(90deg,var(--good),#37c47f)}
+  .drill .dstem{font-size:15px;font-weight:600;margin-bottom:12px}
+  .drill .dopt{display:block;padding:10px 12px;border:1px solid var(--line);border-radius:8px;margin-bottom:8px;cursor:pointer;font-size:14px}
+  .drill .dopt:hover{background:#f4f8fd}
+  .drill .dopt.correct{background:#eefbf3;border-color:var(--good)}
+  .drill .dopt.wrong{background:#fdecec;border-color:var(--bad)}
+  .drill .dexp{font-size:13px;color:var(--muted);margin:8px 0;display:none}
+  .drill .dexp.show{display:block}
+  .drill .ddone{text-align:center;padding:20px}
+  .drill .ddone .big{font-size:44px}
   footer{text-align:center;color:var(--muted);font-size:12px;padding:18px}
   a{color:var(--uci-blue)}
 </style>
@@ -124,11 +153,15 @@
   <div class="weeks" id="weeks"></div>
   <div class="panel" id="panel"></div>
 
+  <div class="weakspots" id="weakspots"></div>
+
   <div class="mistakes">
     <h2>📕 Mistake Notebook <span id="mCourse" style="font-size:12px;color:var(--muted)"></span></h2>
     <div id="mistakeList"></div>
   </div>
 </div>
+
+<div class="drill-ov" id="drillOv" onclick="if(event.target===this)closeDrill()"><div class="drill" id="drill"></div></div>
 
 <footer>
   Built for John by Meimei · Content mapped to UCI official weekly schedules ·
@@ -752,7 +785,7 @@ function answer(n,qi,oi){
   document.getElementById('exp-'+qi).classList.add('show');
   if(oi!==q.a){
     state.mistakes[state.active].push({week:n,stem:q.stem,chosen:q.opts[oi],correct:q.opts[q.a],exp:q.exp});
-    save(); renderMistakes();
+    save(); renderMistakes(); renderWeak();
   }
 }
 
@@ -769,7 +802,93 @@ function renderMistakes(){
     <div>You chose: <span style="color:var(--bad)">${m.chosen}</span> · Correct: <span style="color:var(--good)">${m.correct}</span></div>
     <div style="color:var(--muted);font-size:12px;margin-top:3px">💡 ${m.exp}</div></div>`).join('');
 }
-function delMistake(i){ state.mistakes[state.active].splice(i,1); save(); renderMistakes(); }
+function delMistake(i){ state.mistakes[state.active].splice(i,1); save(); renderMistakes(); renderWeak(); }
+
+// ================= WEAK AREAS & TARGETED PRACTICE =================
+const TIPS={
+ ics31:"Retype each code example by hand, then predict the output <i>before</i> running it. For loops, write the value of every variable after each pass on paper. Redo each missed question until you get it right twice in a row.",
+ ics32:"Trace the program line by line on paper — for file/exception and recursion questions, write down what each call returns. Rebuild the small program yourself instead of only reading it, then rerun the missed questions until clean.",
+ ics33:"For Big-O, literally count the nested loops. For data-model / generators / decorators, write a 3-line example and run it to see the behavior. Redo the missed questions until the pattern is automatic, not memorized.",
+ math2a:"Rework each missed problem on paper from scratch — don't just read the solution. Then do 3 similar problems in a row. If you can't finish one without peeking, it's not solid yet; repeat until you can."
+};
+function weakWeeks(){
+  const arr=state.mistakes[state.active]||[];
+  const cnt={};
+  arr.forEach(m=>{ cnt[m.week]=(cnt[m.week]||0)+1; });
+  return Object.keys(cnt).map(Number).map(w=>({w,n:cnt[w]})).sort((a,b)=>b.n-a.n||a.w-b.w);
+}
+function renderWeak(){
+  const host=document.getElementById('weakspots'); if(!host) return;
+  const ww=weakWeeks();
+  let html=`<h2>🎯 Weak Areas &amp; Targeted Practice <span style="font-size:12px;color:var(--muted)">— ${ACT().code}</span></h2>`;
+  if(!ww.length){
+    html+=`<p class="sub">As John takes the quizzes, the topics he misses most automatically show up here — each with a study tip and a <b>Focused Practice drill that repeats those exact questions until he gets every one right</b>. Take any week's quiz to activate this.</p>`;
+    host.innerHTML=html; return;
+  }
+  html+=`<p class="sub">Based on the questions John missed, these are the areas to strengthen (most-missed first). Run the Focused Practice drill: it re-serves each question — and any he gets wrong goes back in the queue — until the whole set is correct.</p>`;
+  ww.forEach(({w,n})=>{
+    const wk=ACT().weeks.find(x=>x.n===w); if(!wk) return;
+    html+=`<div class="wcard">
+      <div class="wh">Week ${w} — ${wk.title}</div>
+      <div class="wmeta">Missed ${n} question${n>1?'s':''} · Topics: ${wk.topics.join(' · ')}</div>
+      <div class="tip"><b>💪 How to strengthen this:</b> ${TIPS[state.active]||''}</div>
+      <div class="wbtns">
+        <button class="btn" onclick="startDrill(${w})">🎯 Focused Practice (repeat till correct)</button>
+        <button class="btn ghost" onclick="openWeek(${w})">Open Week ${w}</button>
+        <button class="btn ghost" onclick="tutorWeak(${w})">❓ Ask a Tutor</button>
+      </div></div>`;
+  });
+  host.innerHTML=html;
+}
+function tutorWeak(w){
+  const wk=ACT().weeks.find(x=>x.n===w); if(!wk) return;
+  const ctx=`I'm a UC Irvine Computer Science freshman studying ${ACT().code} (${ACT().name}), Week ${w}: ${wk.title}. I keep getting questions wrong on these topics: ${wk.topics.join(', ')}. Please act as a patient tutor: explain each of these simply with a small example, then give me 3 practice questions (with answers) to strengthen this exact area.`;
+  window.open('https://chatgpt.com/?q='+encodeURIComponent(ctx),'_blank','noopener');
+}
+let D=null;
+function startDrill(w){
+  const wk=ACT().weeks.find(x=>x.n===w); if(!wk) return;
+  const missed=new Set((state.mistakes[state.active]||[]).filter(m=>m.week===w).map(m=>m.stem));
+  const qs=wk.quiz.slice().sort((a,b)=>(missed.has(b.stem)?1:0)-(missed.has(a.stem)?1:0));
+  D={week:w,title:wk.title,queue:qs.slice(),solved:new Set(),total:wk.quiz.length};
+  document.getElementById('drillOv').classList.add('open');
+  renderDrill();
+}
+function renderDrill(){
+  const box=document.getElementById('drill'); box.dataset.done='';
+  if(!D.queue.length){
+    box.innerHTML=`<div class="dh"><h3>🎯 Focused Practice</h3><button class="close" onclick="closeDrill()">✕</button></div>
+      <div class="ddone"><div class="big">🎉</div><p style="font-size:16px"><b>All correct!</b></p>
+      <p>You cleared every question in <b>Week ${D.week} — ${D.title}</b>.</p>
+      <p style="color:var(--muted);font-size:13px">That's a strong sign this area is solid now. Redo this drill once more the day before the exam to lock it in.</p>
+      <button class="btn" onclick="closeDrill()">Done</button></div>`;
+    return;
+  }
+  const q=D.queue[0];
+  const pct=Math.round(D.solved.size/D.total*100);
+  let html=`<div class="dh"><h3>🎯 Week ${D.week} Drill</h3><button class="close" onclick="closeDrill()">✕</button></div><div class="db">
+    <div class="dprog">${D.solved.size} / ${D.total} cleared · ${D.queue.length} left in queue
+      <div class="pbar"><span style="width:${pct}%"></span></div></div>
+    <div class="dstem">${q.stem}</div>`;
+  q.opts.forEach((o,oi)=>{ html+=`<span class="dopt" onclick="drillAns(${oi})">${String.fromCharCode(65+oi)}. ${o}</span>`; });
+  html+=`<div class="dexp" id="dexp">💡 ${q.exp}</div><div id="dnext"></div></div>`;
+  box.innerHTML=html;
+}
+function drillAns(oi){
+  const box=document.getElementById('drill'); if(box.dataset.done) return; box.dataset.done='1';
+  const q=D.queue[0];
+  box.querySelectorAll('.dopt').forEach((el,i)=>{ el.style.cursor='default';
+    if(i===q.a) el.classList.add('correct'); if(i===oi&&oi!==q.a) el.classList.add('wrong'); });
+  document.getElementById('dexp').classList.add('show');
+  const correct=(oi===q.a);
+  D.queue.shift();
+  if(correct){ D.solved.add(q.stem); }
+  else { D.queue.push(q); }
+  const msg=correct?'✅ Correct!':"❌ Not quite — this one goes back in the queue, so you'll see it again until you nail it.";
+  document.getElementById('dnext').innerHTML=`<div style="font-size:13px;margin:10px 0;font-weight:600;color:${correct?'var(--good)':'var(--bad)'}">${msg}</div>
+    <button class="btn" onclick="renderDrill()">${D.queue.length?'Next →':'Finish 🎉'}</button>`;
+}
+function closeDrill(){ document.getElementById('drillOv').classList.remove('open'); D=null; renderWeak(); }
 
 // ================= COUNTDOWN =================
 const sd=document.getElementById('startDate');
@@ -796,7 +915,7 @@ function resetCourse(){
   }
 }
 
-function renderAll(){ renderTabs(); renderWeeks(); renderMistakes(); renderCountdown(); }
+function renderAll(){ renderTabs(); renderWeeks(); renderMistakes(); renderWeak(); renderCountdown(); }
 renderAll();
 setInterval(renderCountdown,3600000);
 
