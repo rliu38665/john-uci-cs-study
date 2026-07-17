@@ -73,6 +73,12 @@
   .q .exp.show{display:block}
   .proj{background:#f4f8fd;border:1px dashed var(--uci-blue);border-radius:10px;padding:12px;font-size:13.5px}
   .proj b{color:var(--uci-blue)}
+  .askhint{font-size:12.5px;color:var(--muted);margin:0 0 8px}
+  .askbox{width:100%;min-height:64px;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:13.5px;font-family:inherit;resize:vertical}
+  .askbtns{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+  .reslinks{display:flex;flex-direction:column;gap:6px}
+  .reslink{display:block;padding:9px 12px;border:1px solid var(--line);border-radius:10px;font-size:13.5px;text-decoration:none;background:#f9fbfe;color:var(--ink)}
+  .reslink:hover{background:#eef5fd;border-color:var(--uci-blue)}
   .mistakes{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:30px}
   .mistakes h2{font-size:16px;margin:0 0 12px;color:var(--uci-blue)}
   .mrow{border-left:3px solid var(--bad);background:#fdf6f6;padding:8px 12px;border-radius:0 8px 8px 0;margin-bottom:8px;font-size:13px}
@@ -446,8 +452,46 @@ function openWeek(n){
     q.opts.forEach((o,oi)=>{ html+=`<span class="opt" onclick="answer(${n},${qi},${oi})">${String.fromCharCode(65+oi)}. ${o}</span>`; });
     html+=`<div class="exp" id="exp-${qi}">💡 ${q.exp}</div></div>`;
   });
-  html+=`</div><div class="sec"><h3>🛠 Weekly Mini-Project</h3><div class="proj"><b>Practice:</b> ${wk.project}</div></div></div>`;
+  html+=`</div><div class="sec"><h3>🛠 Weekly Mini-Project</h3><div class="proj"><b>Practice:</b> ${wk.project}</div></div>`;
+  // ❓ Ask a Tutor
+  html+=`<div class="sec"><h3>❓ Ask a Tutor</h3>
+    <p class="askhint">Stuck on anything from this week? Type your question and pick a tutor. It opens with your course and topic already filled in, so you get a clear explanation with an example.</p>
+    <textarea class="askbox" id="askbox" placeholder="e.g. I don't understand how a for-loop works. Can you explain it simply?"></textarea>
+    <div class="askbtns">
+      <button class="btn" onclick="askAI('chatgpt',${n})">💬 Ask ChatGPT</button>
+      <button class="btn" onclick="askAI('claude',${n})">🤖 Ask Claude</button>
+      <button class="btn" onclick="askAI('perplexity',${n})">🔎 Ask Perplexity</button>
+      <button class="btn" onclick="askAI('google',${n})">🌐 Google it</button>
+    </div></div>`;
+  // 📺 Still confused? Watch & Learn
+  const rl=RES[id]||[];
+  html+=`<div class="sec"><h3>📺 Still confused? Watch &amp; Learn</h3>
+    <p class="askhint">Video lessons and trusted guides for this topic. Great when you want to see it explained step by step.</p>
+    <div class="reslinks">
+      <a class="reslink" href="${ytQuery(n)}" target="_blank" rel="noopener">▶️ YouTube videos for: ${wk.title}</a>`;
+  rl.forEach(r=>{ html+=`<a class="reslink" href="${r[1]}" target="_blank" rel="noopener">${r[0]}</a>`; });
+  html+=`</div></div>`;
+  html+=`</div>`;
   panel.innerHTML=html; panel.classList.add('open'); panel.scrollIntoView({behavior:'smooth',block:'start'});
+}
+const RES={
+ ics31:[["🐍 Python.org — official beginner tutorial","https://docs.python.org/3/tutorial/"],["🎓 freeCodeCamp — Python for Beginners (full course)","https://www.youtube.com/results?search_query=freecodecamp+python+for+beginners+full+course"],["▶️ Corey Schafer — Python tutorials","https://www.youtube.com/results?search_query=corey+schafer+python+beginner+tutorial"]],
+ ics32:[["🐍 Python.org — modules, files & exceptions","https://docs.python.org/3/tutorial/"],["🎮 Real Python — tkinter & PyGame projects","https://www.youtube.com/results?search_query=python+tkinter+pygame+tutorial+beginner"],["▶️ Tech With Tim — Python projects","https://www.youtube.com/results?search_query=tech+with+tim+python+tutorial"]],
+ ics33:[["🐍 Python.org — data model & advanced features","https://docs.python.org/3/reference/datamodel.html"],["⚡ mCoding — intermediate/advanced Python","https://www.youtube.com/results?search_query=mcoding+python+decorators+generators"],["▶️ ArjanCodes — Pythonic design & decorators","https://www.youtube.com/results?search_query=arjancodes+decorators+dataclasses+python"]],
+ math2a:[["📘 Khan Academy — Calculus 1 (free full course)","https://www.khanacademy.org/math/calculus-1"],["👨‍🏫 Professor Leonard — Calculus 1 lectures","https://www.youtube.com/results?search_query=professor+leonard+calculus+1"],["🎨 3Blue1Brown — Essence of Calculus","https://www.youtube.com/results?search_query=3blue1brown+essence+of+calculus"]]
+};
+function askAI(which,n){
+  const wk=ACT().weeks.find(x=>x.n===n);
+  const q=(document.getElementById('askbox')||{}).value||'';
+  const ctx=`I'm a UC Irvine Computer Science freshman studying ${ACT().code} (${ACT().name}), Week ${n}: ${wk.title}. Please act as a patient tutor and explain clearly in simple English with a small example. My question: ${q||'Please explain this week\'s topics in simple terms with an example.'}`;
+  const e=encodeURIComponent(ctx);
+  const urls={chatgpt:'https://chatgpt.com/?q='+e,claude:'https://claude.ai/new?q='+e,perplexity:'https://www.perplexity.ai/search?q='+e,google:'https://www.google.com/search?q='+e};
+  window.open(urls[which]||urls.google,'_blank','noopener');
+}
+function ytQuery(n){
+  const wk=ACT().weeks.find(x=>x.n===n);
+  const subj=state.active==='math2a'?'calculus':'python programming';
+  return 'https://www.youtube.com/results?search_query='+encodeURIComponent(subj+' '+wk.title+' tutorial');
 }
 function closePanel(){ panel.classList.remove('open'); }
 function setMastery(k,v){ state.mastery[k]=v; save();
